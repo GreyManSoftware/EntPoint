@@ -2,16 +2,37 @@ using System.Globalization;
 
 namespace EntPoint.Collector
 {
-	internal sealed record CollectorOptions(
-		string OutputPath,
-		int IntervalMilliseconds,
-		int? MaxEvents,
-		int MachineCount,
-		int InitialProcesses,
-		double AlertPercentage,
-		int? Seed,
-		bool ShowHelp)
+	internal sealed class CollectorOptions
 	{
+		private CollectorOptions(
+			string outputPath,
+			int intervalMilliseconds,
+			int? maxEvents,
+			int machineCount,
+			int initialProcesses,
+			double alertPercentage,
+			int? seed,
+			bool showHelp)
+		{
+			OutputPath = outputPath;
+			IntervalMilliseconds = intervalMilliseconds;
+			MaxEvents = maxEvents;
+			MachineCount = machineCount;
+			InitialProcesses = initialProcesses;
+			AlertPercentage = alertPercentage;
+			Seed = seed;
+			ShowHelp = showHelp;
+		}
+
+		public string OutputPath { get; }
+		public int IntervalMilliseconds { get; }
+		public int? MaxEvents { get; }
+		public int MachineCount { get; }
+		public int InitialProcesses { get; }
+		public double AlertPercentage { get; }
+		public int? Seed { get; }
+		public bool ShowHelp { get; }
+
 		public static CollectorOptions Parse(string[] args)
 		{
 			string outputPath = GetDefaultOutputPath();

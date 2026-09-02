@@ -2,6 +2,8 @@
   <Folder Name="/src/">
     <Project Path="src/EntPoint.Collector/EntPoint.Collector.csproj" />
     <Project Path="src/EntPoint.Core/EntPoint.Core.csproj" />
+    <Project Path="src/EntPoint.Ingestion/EntPoint.Ingestion.csproj" />
+    <Project Path="src/EntPoint.Persistence/EntPoint.Persistence.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EntPoint.Tests/EntPoint.Tests.csproj" />

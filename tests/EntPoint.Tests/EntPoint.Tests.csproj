@@ -17,6 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\EntPoint.Collector\EntPoint.Collector.csproj" />
     <ProjectReference Include="..\..\src\EntPoint.Core\EntPoint.Core.csproj" />
+    <ProjectReference Include="..\..\src\EntPoint.Ingestion\EntPoint.Ingestion.csproj" />
+    <ProjectReference Include="..\..\src\EntPoint.Persistence\EntPoint.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

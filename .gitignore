@@ -2,6 +2,9 @@
 **/obj/
 .vs/
 .idea/
+.env
+.env.*
+!.env.example
 TestResults/
 data/*.ndjson
 debug_data/*.ndjson

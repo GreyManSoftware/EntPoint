@@ -41,6 +41,11 @@ namespace EntPoint.Core
 				return NormalizationResult.Rejected("Operating system is not supported.");
 			}
 
+			if (rawEvent.EndpointId == Guid.Empty)
+			{
+				return NormalizationResult.Rejected("Endpoint ID must be a valid UUID.");
+			}
+
 			if (string.IsNullOrWhiteSpace(rawEvent.UserId) ||
 				string.IsNullOrWhiteSpace(rawEvent.ProcessName))
 			{
@@ -74,7 +79,8 @@ namespace EntPoint.Core
 			}
 
 			bool isAlert = rawEvent.AlertScore.HasValue;
-			if (isAlert != !string.IsNullOrWhiteSpace(rawEvent.AlertReason))
+			if ((isAlert && string.IsNullOrWhiteSpace(rawEvent.AlertReason)) ||
+				(!isAlert && rawEvent.AlertReason is not null))
 			{
 				return NormalizationResult.Rejected(
 					"Alert score and alert reason must either both be present or both be absent.");

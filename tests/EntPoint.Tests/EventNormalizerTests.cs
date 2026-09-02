@@ -59,6 +59,28 @@ namespace EntPoint.Tests
 		}
 
 		[Fact]
+		public void Normalize_RejectsEmptyEndpointId()
+		{
+			RawSecurityEvent rawEvent = CreateEvent() with { EndpointId = Guid.Empty };
+
+			NormalizationResult result = _normalizer.Normalize(rawEvent);
+
+			Assert.False(result.IsAccepted);
+			Assert.Contains("Endpoint ID", result.RejectionReason);
+		}
+
+		[Fact]
+		public void Normalize_RejectsAlertReasonWithoutScore()
+		{
+			RawSecurityEvent rawEvent = CreateEvent() with { AlertReason = string.Empty };
+
+			NormalizationResult result = _normalizer.Normalize(rawEvent);
+
+			Assert.False(result.IsAccepted);
+			Assert.Contains("Alert score", result.RejectionReason);
+		}
+
+		[Fact]
 		public void Serialize_UsesFlatSnakeCaseNdjsonShape()
 		{
 			NormalizedSecurityEvent normalized = _normalizer.Normalize(CreateEvent()).Event!;
