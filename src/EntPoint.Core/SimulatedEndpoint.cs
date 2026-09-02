@@ -14,6 +14,21 @@ namespace EntPoint.Core
 			"bash",
 			"python",
 			"code",
+			"firefox.exe",
+			"msedge.exe",
+			"notepad.exe",
+			"outlook.exe",
+			"teams.exe",
+			"node",
+			"java",
+			"nginx",
+			"sshd",
+			"curl",
+			"git",
+			"docker",
+			"w3wp.exe",
+			"sqlservr.exe",
+			"rundll32.exe",
 			"system_idle_process",
 			"svchost.exe"
 		];
@@ -32,11 +47,24 @@ namespace EntPoint.Core
 		private static readonly string[] FilePaths =
 		[
 			@"C:\Users\alex\Documents\report.docx",
+			@"C:\Users\alex\Documents\budget.xlsx",
 			@"C:\Users\alex\Downloads\invoice.pdf",
+			@"C:\Users\alex\Downloads\payload.zip",
+			@"C:\Users\alex\AppData\Local\Temp\update.exe",
+			@"C:\Users\alex\AppData\Local\Google\Chrome\User Data\Default\Cookies",
+			@"C:\ProgramData\EntPoint\config.json",
 			@"C:\Windows\System32\config\SAM",
+			@"C:\Windows\Temp\service.log",
 			"/home/alex/.ssh/id_rsa",
+			"/home/alex/.bash_history",
+			"/home/alex/projects/app/appsettings.json",
 			"/etc/shadow",
+			"/etc/passwd",
+			"/etc/hosts",
 			"/var/log/auth.log",
+			"/var/log/syslog",
+			"/opt/service/config.yaml",
+			"/tmp/session-token.txt",
 			"/tmp/archive.zip"
 		];
 
