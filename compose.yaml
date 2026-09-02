@@ -1,0 +1,27 @@
+services:
+  collector:
+    build:
+      context: .
+    volumes:
+      - ./data:/app/data
+    command:
+      - --output
+      - /app/data/events.ndjson
+      - --interval-ms
+      - "1000"
+      - --alert-percentage
+      - "3"
+
+  tests:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles:
+      - test
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    command:
+      - dotnet
+      - test
+      - EntPoint.slnx
+      - --configuration
+      - Release
