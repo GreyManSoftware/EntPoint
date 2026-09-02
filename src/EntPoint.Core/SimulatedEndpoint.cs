@@ -18,6 +18,22 @@ namespace EntPoint.Core
 			"w3wp.exe",
 			"sqlservr.exe",
 			"rundll32.exe",
+			"SearchIndexer.exe",
+			"OneDrive.exe",
+			"winword.exe",
+			"excel.exe",
+			"msaccess.exe",
+			"msiexec.exe",
+			"conhost.exe",
+			"taskhostw.exe",
+			"RuntimeBroker.exe",
+			"SecurityHealthService.exe",
+			"MsMpEng.exe",
+			"powershell_ise.exe",
+			"7z.exe",
+			"winscp.exe",
+			"putty.exe",
+			"certutil.exe",
 			"dotnet.exe",
 			"code.exe",
 			"system_idle_process",
@@ -40,6 +56,23 @@ namespace EntPoint.Core
 			"dockerd",
 			"cron",
 			"rsyslogd",
+			"zsh",
+			"sh",
+			"perl",
+			"ruby",
+			"php",
+			"apache2",
+			"mysqld",
+			"postgres",
+			"redis-server",
+			"containerd",
+			"journalctl",
+			"systemctl",
+			"sudo",
+			"scp",
+			"wget",
+			"openssl",
+			"tar",
 			"kthreadd",
 			"kworker"
 		];
@@ -48,8 +81,11 @@ namespace EntPoint.Core
 		[
 			@"CORP\alex",
 			@"CORP\jamie",
+			@"CORP\morgan",
+			@"LOCAL\operator",
 			@"NT AUTHORITY\SYSTEM",
-			@"NT SERVICE\W3SVC"
+			@"NT SERVICE\W3SVC",
+			@"NT SERVICE\MSSQLSERVER"
 		];
 
 		private static readonly string[] LinuxUserIds =
@@ -58,7 +94,11 @@ namespace EntPoint.Core
 			"jamie",
 			"root",
 			"www-data",
-			"backup"
+			"backup",
+			"deploy",
+			"postgres",
+			"nginx",
+			"syslog"
 		];
 
 		private static readonly string[] WindowsFilePaths =
@@ -69,24 +109,48 @@ namespace EntPoint.Core
 			@"C:\Users\alex\Downloads\payload.zip",
 			@"C:\Users\alex\AppData\Local\Temp\update.exe",
 			@"C:\Users\alex\AppData\Local\Google\Chrome\User Data\Default\Cookies",
+			@"C:\Users\alex\AppData\Local\Google\Chrome\User Data\Default\Login Data",
+			@"C:\Users\alex\.ssh\id_ed25519",
+			@"C:\Users\jamie\Desktop\notes.txt",
+			@"C:\Users\jamie\Downloads\setup.msi",
+			@"C:\Users\jamie\AppData\Roaming\Microsoft\Credentials\cache.dat",
 			@"C:\ProgramData\EntPoint\config.json",
+			@"C:\ProgramData\Microsoft\Crypto\RSA\MachineKeys\machine.key",
+			@"C:\Program Files\Contoso\appsettings.json",
+			@"C:\inetpub\wwwroot\web.config",
 			@"C:\Windows\System32\config\SAM",
-			@"C:\Windows\Temp\service.log"
+			@"C:\Windows\System32\drivers\etc\hosts",
+			@"C:\Windows\System32\winevt\Logs\Security.evtx",
+			@"C:\Windows\Prefetch\POWERSHELL.EXE-12345678.pf",
+			@"C:\Windows\Temp\service.log",
+			@"C:\Temp\export.csv"
 		];
 
 		private static readonly string[] LinuxFilePaths =
 		[
 			"/home/alex/.ssh/id_rsa",
 			"/home/alex/.bash_history",
+			"/home/alex/.config/chromium/Default/Login Data",
+			"/home/alex/.aws/credentials",
 			"/home/alex/projects/app/appsettings.json",
+			"/home/jamie/Documents/report.pdf",
+			"/home/deploy/.ssh/authorized_keys",
 			"/etc/shadow",
 			"/etc/passwd",
 			"/etc/hosts",
+			"/etc/ssh/sshd_config",
+			"/etc/sudoers",
+			"/etc/nginx/nginx.conf",
 			"/var/log/auth.log",
 			"/var/log/syslog",
+			"/var/log/nginx/access.log",
+			"/var/lib/postgresql/data/pg_hba.conf",
+			"/proc/self/environ",
 			"/opt/service/config.yaml",
+			"/opt/service/secrets.json",
 			"/tmp/session-token.txt",
-			"/tmp/archive.zip"
+			"/tmp/archive.zip",
+			"/tmp/database-backup.sql"
 		];
 
 		private static readonly HashSet<string> DenylistedProcessNames =
