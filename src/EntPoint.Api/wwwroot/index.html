@@ -16,60 +16,64 @@
 			It is not a production component and would not be shipped with the service.
 		</p>
 
-		<section class="controls">
-			<label for="endpoint">Endpoint</label>
-			<select id="endpoint"></select>
+		<div class="page-layout">
+			<section class="demo-content">
+				<section class="controls">
+					<label for="endpoint">Endpoint</label>
+					<select id="endpoint"></select>
 
-			<label for="minimum-score">Minimum alert score</label>
-			<input id="minimum-score" type="number" min="1" max="100" value="70">
+					<label for="minimum-score">Minimum alert score</label>
+					<input id="minimum-score" type="number" min="1" max="100" value="70">
 
-			<div class="buttons">
-				<button id="summary">Load Endpoint Summary</button>
-				<button id="recent-alerts">Load 10 Recent Alerts</button>
-				<button id="filtered-alerts">Filter Alerts</button>
-			</div>
-		</section>
+					<div class="buttons">
+						<button id="summary">Load Endpoint Summary</button>
+						<button id="recent-alerts">Load 10 Recent Alerts</button>
+						<button id="filtered-alerts">Filter Alerts</button>
+					</div>
+				</section>
 
-		<p id="status" role="status">Loading endpoints...</p>
-		<pre id="output"></pre>
+				<p id="status" role="status">Loading endpoints...</p>
+				<pre id="output"></pre>
+			</section>
 
-		<section class="api-reference">
-			<h2>Available APIs</h2>
-			<table>
-				<thead>
-					<tr>
-						<th>Method</th>
-						<th>Route</th>
-						<th>Purpose</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>GET</td>
-						<td><code>/api/v1/endpoints</code></td>
-						<td>List known endpoint UUIDs and operating systems.</td>
-					</tr>
-					<tr>
-						<td>GET</td>
-						<td><code>/api/v1/summary/{endpoint_id}</code></td>
-						<td>Summarize relational events for one endpoint.</td>
-					</tr>
-					<tr>
-						<td>GET</td>
-						<td><code>/api/v1/alerts</code></td>
-						<td>Return the ten most recent alerts.</td>
-					</tr>
-					<tr>
-						<td>GET</td>
-						<td><code>/api/v1/alerts?endpoint_id=&amp;min_score=</code></td>
-						<td>Filter alerts by endpoint, minimum score, or both.</td>
-					</tr>
-				</tbody>
-			</table>
+			<aside class="api-reference">
+				<h2>Available APIs</h2>
+				<table>
+					<thead>
+						<tr>
+							<th>Method</th>
+							<th>Route</th>
+							<th>Purpose</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>GET</td>
+							<td><code>/api/v1/endpoints</code></td>
+							<td>List known endpoint UUIDs and operating systems.</td>
+						</tr>
+						<tr>
+							<td>GET</td>
+							<td><code>/api/v1/summary/{endpoint_id}</code></td>
+							<td>Summarize relational events for one endpoint.</td>
+						</tr>
+						<tr>
+							<td>GET</td>
+							<td><code>/api/v1/alerts</code></td>
+							<td>Return the ten most recent alerts.</td>
+						</tr>
+						<tr>
+							<td>GET</td>
+							<td><code>/api/v1/alerts?endpoint_id=&amp;min_score=</code></td>
+							<td>Filter alerts by endpoint, minimum score, or both.</td>
+						</tr>
+					</tbody>
+				</table>
 
-			<h2>Command-line examples</h2>
-			<pre id="command-examples"></pre>
-		</section>
+				<h2>Command-line examples</h2>
+				<pre id="command-examples"></pre>
+			</aside>
+		</div>
 	</main>
 	<script src="app.js"></script>
 </body>
