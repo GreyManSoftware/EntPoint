@@ -2,19 +2,42 @@
 
 EntPoint is a simulated endpoint security-data pipeline implemented in C#.
 
-## Part 1: event collection simulation
+## Collector
 
-The collector creates one or more virtual Windows and Linux machines, each with
-its own UUID and initial mock process inventory. It then continuously generates
-OS-specific process-start and file-read events. Each event records its endpoint,
-operating system, user, process name, PID, PPID, and an ISO 8601 UTC timestamp.
-File-read events also include a platform-appropriate file path.
+`EntPoint.Collector` simulates security telemetry from one or more virtual
+Windows and Linux endpoints. Each endpoint receives a UUID and an initial
+process inventory before continuously generating process-start and file-read
+events with coherent PID/PPID relationships.
 
-A configurable percentage of events include an alert score and reason.
-Normalization derives `is_alert`, rejects invalid data, and filters
-`system_idle_process` and `svchost.exe`. Accepted events are appended as NDJSON.
+Events include the endpoint operating system, user, process, UTC timestamp, and
+platform-appropriate file information. A configurable percentage also include
+an alert score and reason. The normalizer validates the events, derives
+`is_alert`, filters denylisted processes, and appends accepted events as NDJSON.
 
-## Run with Docker
+## Run locally
+
+.NET 10 SDK is required.
+
+Start continuous collection from the repository root:
+
+```powershell
+dotnet run --project .\src\EntPoint.Collector\EntPoint.Collector.csproj
+```
+
+Run a finite, repeatable sample:
+
+```powershell
+dotnet run --project .\src\EntPoint.Collector\EntPoint.Collector.csproj -- `
+  --output .\data\events.ndjson `
+  --machines 2 `
+  --max-events 25 `
+  --interval-ms 10 `
+  --seed 42
+```
+
+Press `Ctrl+C` to stop continuous collection.
+
+## Run in Docker
 
 Build and start continuous collection:
 
@@ -22,10 +45,7 @@ Build and start continuous collection:
 docker compose up --build collector
 ```
 
-Stop the collector with `Ctrl+C`. Events are written to `data/events.ndjson`.
-
-The VS Code container debugging profile writes persistent debugger output to
-`debug_data/events.ndjson`, keeping it separate from normal collector runs.
+Events are written to `data/events.ndjson`. Press `Ctrl+C` to stop collection.
 
 Run a finite, repeatable sample:
 
@@ -38,7 +58,18 @@ docker compose run --rm collector `
   --seed 42
 ```
 
-Run the tests:
+The VS Code container debugging profile writes persistent output to
+`debug_data/events.ndjson`, keeping debug data separate from normal runs.
+
+## Run tests
+
+Locally:
+
+```powershell
+dotnet test .\EntPoint.slnx
+```
+
+In Docker:
 
 ```powershell
 docker compose run --rm tests
@@ -55,6 +86,9 @@ docker compose run --rm tests
 --alert-percentage <number>  Alert frequency from 0 to 100
 --seed <number>              Fixed random seed
 ```
+
+If `--max-events` is omitted, collection continues until cancelled. Output files
+are opened in append mode.
 
 ## Design notes
 
