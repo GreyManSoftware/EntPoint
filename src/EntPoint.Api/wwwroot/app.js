@@ -2,6 +2,20 @@ const endpointSelect = document.querySelector("#endpoint");
 const minimumScoreInput = document.querySelector("#minimum-score");
 const statusElement = document.querySelector("#status");
 const outputElement = document.querySelector("#output");
+const commandExamplesElement = document.querySelector("#command-examples");
+
+function renderCommandExamples() {
+	const endpointId = endpointSelect.value || "<endpoint-uuid>";
+	const minimumScore = minimumScoreInput.value || "70";
+	commandExamplesElement.textContent =
+`curl.exe http://localhost:8080/api/v1/endpoints
+
+curl.exe http://localhost:8080/api/v1/summary/${endpointId}
+
+curl.exe http://localhost:8080/api/v1/alerts
+
+curl.exe "http://localhost:8080/api/v1/alerts?endpoint_id=${endpointId}&min_score=${minimumScore}"`;
+}
 
 async function request(path) {
 	statusElement.textContent = `Requesting ${path}`;
@@ -42,6 +56,7 @@ async function loadEndpoints() {
 		}));
 
 	statusElement.textContent = `Loaded ${result.body.length} endpoints`;
+	renderCommandExamples();
 }
 
 document.querySelector("#summary").addEventListener("click", () => {
@@ -64,4 +79,8 @@ document.querySelector("#filtered-alerts").addEventListener("click", () => {
 	request(`/api/v1/alerts?${parameters}`);
 });
 
+endpointSelect.addEventListener("change", renderCommandExamples);
+minimumScoreInput.addEventListener("input", renderCommandExamples);
+
+renderCommandExamples();
 loadEndpoints();
