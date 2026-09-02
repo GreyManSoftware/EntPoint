@@ -418,3 +418,6 @@ represented; a single machine is assigned one platform when it is created.
 API-key authentication uses fixed-time key comparison and a global authenticated
 fallback policy. Explicit authorization policies allow analysts and admins to
 query endpoint summaries while restricting alerts to admins.
+
+Further technology choices and trade-offs are documented in
+[TECHNOLOGY.md](TECHNOLOGY.md).
