@@ -4,3 +4,4 @@
 .idea/
 TestResults/
 data/*.ndjson
+debug_data/*.ndjson

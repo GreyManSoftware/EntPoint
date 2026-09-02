@@ -24,6 +24,9 @@ docker compose up --build collector
 
 Stop the collector with `Ctrl+C`. Events are written to `data/events.ndjson`.
 
+The VS Code container debugging profile writes persistent debugger output to
+`debug_data/events.ndjson`, keeping it separate from normal collector runs.
+
 Run a finite, repeatable sample:
 
 ```powershell

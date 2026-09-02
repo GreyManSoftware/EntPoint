@@ -1,3 +1,8 @@
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS base
+WORKDIR /app
+RUN mkdir -p /app/data && chown "$APP_UID:$APP_UID" /app/data
+USER $APP_UID
+
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
@@ -12,9 +17,6 @@ RUN dotnet publish src/EntPoint.Collector/EntPoint.Collector.csproj \
     --no-restore \
     --output /app/publish
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
-WORKDIR /app
+FROM base AS runtime
 COPY --from=build /app/publish .
-RUN mkdir -p /app/data && chown "$APP_UID:$APP_UID" /app/data
-USER $APP_UID
 ENTRYPOINT ["dotnet", "EntPoint.Collector.dll"]
