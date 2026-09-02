@@ -15,4 +15,5 @@ RUN dotnet publish src/EntPoint.Collector/EntPoint.Collector.csproj \
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
+RUN mkdir -p /app/data && chown "$APP_UID:$APP_UID" /app/data
 ENTRYPOINT ["dotnet", "EntPoint.Collector.dll"]
