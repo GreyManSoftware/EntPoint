@@ -23,6 +23,9 @@ PostgreSQL and MongoDB are persistent services backed by named Docker volumes.
 Compose provides the ingestion container with connection settings and resolves
 the service names `postgres` and `mongo` through Docker DNS.
 
+Technology choices and trade-offs are documented in
+[TECHNOLOGY.md](TECHNOLOGY.md).
+
 ## Prerequisites
 
 - Docker Desktop with Linux containers and Docker Compose
@@ -406,18 +409,3 @@ Invoke-WebRequest `
   -Headers $adminHeaders `
   -Uri "http://localhost:8080/api/v1/alerts"
 ```
-
-## Design notes
-
-NDJSON supports continuous append-only collection and can be ingested one event
-at a time in Part 2. The simulated process table keeps PID/PPID relationships
-coherent and ensures file reads belong to known processes. Runs with two or more
-machines alternate Windows and Linux assignments so both platforms are
-represented; a single machine is assigned one platform when it is created.
-
-API-key authentication uses fixed-time key comparison and a global authenticated
-fallback policy. Explicit authorization policies allow analysts and admins to
-query endpoint summaries while restricting alerts to admins.
-
-Further technology choices and trade-offs are documented in
-[TECHNOLOGY.md](TECHNOLOGY.md).
