@@ -1,5 +1,6 @@
 using System.Text.Json;
 using EntPoint.Core;
+using Xunit;
 
 namespace EntPoint.Tests
 {

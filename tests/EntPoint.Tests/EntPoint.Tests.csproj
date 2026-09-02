@@ -15,10 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\src\EntPoint.Collector\EntPoint.Collector.csproj" />
     <ProjectReference Include="..\..\src\EntPoint.Core\EntPoint.Core.csproj" />
   </ItemGroup>
 
