@@ -1,0 +1,21 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "C#: EntPoint.Collector Debug",
+			"type": "dotnet",
+			"request": "launch",
+			"projectPath": "${workspaceFolder}/src/EntPoint.Collector/EntPoint.Collector.csproj"
+		},
+		{
+			"name": "Containers: EntPoint.Collector Debug",
+			"type": "docker",
+			"request": "launch",
+			"removeContainerAfterDebug": true,
+			"netCore": {
+				"appProject": "${workspaceFolder}/src/EntPoint.Collector/EntPoint.Collector.csproj",
+				"buildWithSdk": true
+			}
+		}
+	]
+}
