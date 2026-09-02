@@ -16,6 +16,20 @@
 			"problemMatcher": "$msCompile"
 		},
 		{
+			"label": "build: ingestion",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"${workspaceFolder}/src/EntPoint.Ingestion/EntPoint.Ingestion.csproj",
+				"--configuration",
+				"Debug",
+				"--property:GenerateFullPaths=true",
+				"--consoleLoggerParameters:NoSummary"
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
 			"label": "docker-build: debug",
 			"type": "docker-build",
 			"dependsOn": [

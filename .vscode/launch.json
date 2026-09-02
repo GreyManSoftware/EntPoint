@@ -8,6 +8,18 @@
 			"projectPath": "${workspaceFolder}/src/EntPoint.Collector/EntPoint.Collector.csproj"
 		},
 		{
+			"name": "C#: EntPoint.Ingestion Debug",
+			"type": "coreclr",
+			"request": "launch",
+			"preLaunchTask": "build: ingestion",
+			"program": "${workspaceFolder}/src/EntPoint.Ingestion/bin/Debug/net10.0/EntPoint.Ingestion.dll",
+			"cwd": "${workspaceFolder}",
+			"envFile": "${workspaceFolder}/.env.debug",
+			"args": [
+				"--reset"
+			]
+		},
+		{
 			"name": "Containers: EntPoint.Collector Debug",
 			"type": "docker",
 			"request": "launch",
