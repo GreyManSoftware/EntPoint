@@ -22,34 +22,44 @@ namespace EntPoint.Collector
 					cancellation.Cancel();
 				};
 
-				SimulatedEndpoint simulator = new SimulatedEndpoint(new SimulationOptions(
-					options.InitialProcesses,
-					options.AlertPercentage,
-					options.Seed));
+				IReadOnlyList<SimulatedEndpoint> simulators = CreateSimulators(options);
 				EventNormalizer normalizer = new EventNormalizer();
 				await using NdjsonEventWriter writer = NdjsonEventWriter.Open(options.OutputPath);
 
-				Console.WriteLine($"Endpoint: {simulator.EndpointId}");
+				foreach (SimulatedEndpoint simulator in simulators)
+				{
+					string operatingSystem = simulator.OperatingSystem
+						.ToString()
+						.ToLowerInvariant();
+					Console.WriteLine($"Endpoint: {simulator.EndpointId} ({operatingSystem})");
+				}
+
 				Console.WriteLine($"Writing events to: {Path.GetFullPath(options.OutputPath)}");
 
 				int written = 0;
-				foreach (RawSecurityEvent rawEvent in simulator.Initialize())
+				foreach (SimulatedEndpoint simulator in simulators)
 				{
-					if (await WriteIfAcceptedAsync(rawEvent))
+					foreach (RawSecurityEvent rawEvent in simulator.Initialize())
 					{
-						written++;
-					}
+						if (await WriteIfAcceptedAsync(rawEvent))
+						{
+							written++;
+						}
 
-					if (options.MaxEvents.HasValue && written >= options.MaxEvents.Value)
-					{
-						Console.WriteLine($"Completed after writing {written} events.");
-						return 0;
+						if (options.MaxEvents.HasValue && written >= options.MaxEvents.Value)
+						{
+							Console.WriteLine($"Completed after writing {written} events.");
+							return 0;
+						}
 					}
 				}
 
+				int nextSimulatorIndex = 0;
 				while (!cancellation.IsCancellationRequested &&
 					   (!options.MaxEvents.HasValue || written < options.MaxEvents.Value))
 				{
+					SimulatedEndpoint simulator = simulators[nextSimulatorIndex];
+					nextSimulatorIndex = (nextSimulatorIndex + 1) % simulators.Count;
 					RawSecurityEvent rawEvent = simulator.GenerateNext();
 					if (await WriteIfAcceptedAsync(rawEvent))
 					{
@@ -89,5 +99,41 @@ namespace EntPoint.Collector
 				return 2;
 			}
 		}
+
+		private static IReadOnlyList<SimulatedEndpoint> CreateSimulators(CollectorOptions options)
+		{
+			Random operatingSystemRandom = options.Seed.HasValue
+				? new Random(options.Seed.Value)
+				: new Random();
+			EndpointOperatingSystem firstOperatingSystem = operatingSystemRandom.Next(2) == 0
+				? EndpointOperatingSystem.Windows
+				: EndpointOperatingSystem.Linux;
+			List<SimulatedEndpoint> simulators = new List<SimulatedEndpoint>(options.MachineCount);
+
+			for (int index = 0; index < options.MachineCount; index++)
+			{
+				EndpointOperatingSystem operatingSystem = index % 2 == 0
+					? firstOperatingSystem
+					: Opposite(firstOperatingSystem);
+				int? seed = options.Seed.HasValue
+					? unchecked(options.Seed.Value + index + 1)
+					: null;
+
+				simulators.Add(new SimulatedEndpoint(
+					new SimulationOptions(
+						options.InitialProcesses,
+						options.AlertPercentage,
+						seed),
+					operatingSystem));
+			}
+
+			return simulators;
+		}
+
+		private static EndpointOperatingSystem Opposite(
+			EndpointOperatingSystem operatingSystem) =>
+			operatingSystem == EndpointOperatingSystem.Windows
+				? EndpointOperatingSystem.Linux
+				: EndpointOperatingSystem.Windows;
 	}
 }

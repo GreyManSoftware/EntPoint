@@ -8,7 +8,11 @@ namespace EntPoint.Core
 		public static JsonSerializerOptions Options { get; } = new()
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+			Converters =
+			{
+				new JsonStringEnumConverter<EndpointOperatingSystem>(JsonNamingPolicy.SnakeCaseLower)
+			}
 		};
 	}
 }

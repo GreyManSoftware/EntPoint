@@ -16,7 +16,7 @@ namespace EntPoint.Core
 		public EventNormalizer(IEnumerable<string>? processDenylist = null)
 		{
 			_processDenylist = new HashSet<string>(
-				processDenylist ?? ["system_idle_process", "svchost.exe"],
+				processDenylist ?? ["system_idle_process", "svchost.exe", "kthreadd", "kworker"],
 				StringComparer.OrdinalIgnoreCase);
 		}
 
@@ -34,6 +34,11 @@ namespace EntPoint.Core
 			if (!SupportedEventTypes.Contains(rawEvent.EventType))
 			{
 				return NormalizationResult.Rejected($"Unsupported event type '{rawEvent.EventType}'.");
+			}
+
+			if (!Enum.IsDefined(rawEvent.OperatingSystem))
+			{
+				return NormalizationResult.Rejected("Operating system is not supported.");
 			}
 
 			if (string.IsNullOrWhiteSpace(rawEvent.UserId) ||
@@ -78,6 +83,7 @@ namespace EntPoint.Core
 			return NormalizationResult.Accepted(new NormalizedSecurityEvent(
 				timestamp.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
 				rawEvent.EndpointId,
+				rawEvent.OperatingSystem,
 				rawEvent.EventType,
 				rawEvent.UserId.Trim(),
 				rawEvent.ProcessName.Trim(),

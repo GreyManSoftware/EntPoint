@@ -6,6 +6,7 @@ namespace EntPoint.Collector
 		string OutputPath,
 		int IntervalMilliseconds,
 		int? MaxEvents,
+		int MachineCount,
 		int InitialProcesses,
 		double AlertPercentage,
 		int? Seed,
@@ -16,6 +17,7 @@ namespace EntPoint.Collector
 			string outputPath = Path.Combine("data", "events.ndjson");
 			int intervalMilliseconds = 1000;
 			int? maxEvents = null;
+			int machineCount = 1;
 			int initialProcesses = 8;
 			double alertPercentage = 3d;
 			int? seed = null;
@@ -34,6 +36,9 @@ namespace EntPoint.Collector
 						break;
 					case "--max-events":
 						maxEvents = ParseInt(ReadValue(args, ref index, argument), argument);
+						break;
+					case "--machines":
+						machineCount = ParseInt(ReadValue(args, ref index, argument), argument);
 						break;
 					case "--initial-processes":
 						initialProcesses = ParseInt(ReadValue(args, ref index, argument), argument);
@@ -79,6 +84,13 @@ namespace EntPoint.Collector
 					"At least one initial process is required.");
 			}
 
+			if (machineCount < 1)
+			{
+				throw new ArgumentOutOfRangeException(
+					nameof(machineCount),
+					"At least one machine is required.");
+			}
+
 			if (alertPercentage is < 0 or > 100)
 			{
 				throw new ArgumentOutOfRangeException(
@@ -90,6 +102,7 @@ namespace EntPoint.Collector
 				outputPath,
 				intervalMilliseconds,
 				maxEvents,
+				machineCount,
 				initialProcesses,
 				alertPercentage,
 				seed,
@@ -104,6 +117,7 @@ namespace EntPoint.Collector
           --output <path>              NDJSON output path (default: data/events.ndjson)
           --interval-ms <number>       Delay between continuous events (default: 1000)
           --max-events <number>        Stop after writing this many events
+          --machines <number>          Number of virtual machines (default: 1)
           --initial-processes <number> Initial process inventory size (default: 8)
           --alert-percentage <number>  Alert frequency from 0 to 100 (default: 3)
           --seed <number>              Fixed random seed for repeatable output

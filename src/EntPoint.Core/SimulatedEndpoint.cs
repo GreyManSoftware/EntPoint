@@ -4,47 +4,64 @@ namespace EntPoint.Core
 {
 	public sealed class SimulatedEndpoint
 	{
-		private static readonly string[] ProcessNames =
+		private static readonly string[] WindowsProcessNames =
 		[
 			"explorer.exe",
 			"chrome.exe",
-			"dotnet",
 			"powershell.exe",
 			"cmd.exe",
-			"bash",
-			"python",
-			"code",
 			"firefox.exe",
 			"msedge.exe",
 			"notepad.exe",
 			"outlook.exe",
 			"teams.exe",
+			"w3wp.exe",
+			"sqlservr.exe",
+			"rundll32.exe",
+			"dotnet.exe",
+			"code.exe",
+			"system_idle_process",
+			"svchost.exe"
+		];
+
+		private static readonly string[] LinuxProcessNames =
+		[
+			"systemd",
+			"bash",
+			"python3",
+			"dotnet",
+			"code",
 			"node",
 			"java",
 			"nginx",
 			"sshd",
 			"curl",
 			"git",
-			"docker",
-			"w3wp.exe",
-			"sqlservr.exe",
-			"rundll32.exe",
-			"system_idle_process",
-			"svchost.exe"
+			"dockerd",
+			"cron",
+			"rsyslogd",
+			"kthreadd",
+			"kworker"
 		];
 
-		private static readonly string[] UserIds =
+		private static readonly string[] WindowsUserIds =
 		[
-			"user-1001",
-			"user-1002",
-			"service-backup",
-			"service-web"
+			@"CORP\alex",
+			@"CORP\jamie",
+			@"NT AUTHORITY\SYSTEM",
+			@"NT SERVICE\W3SVC"
 		];
 
-		private static readonly HashSet<string> DenylistedProcessNames =
-			new(["system_idle_process", "svchost.exe"], StringComparer.OrdinalIgnoreCase);
+		private static readonly string[] LinuxUserIds =
+		[
+			"alex",
+			"jamie",
+			"root",
+			"www-data",
+			"backup"
+		];
 
-		private static readonly string[] FilePaths =
+		private static readonly string[] WindowsFilePaths =
 		[
 			@"C:\Users\alex\Documents\report.docx",
 			@"C:\Users\alex\Documents\budget.xlsx",
@@ -54,7 +71,11 @@ namespace EntPoint.Core
 			@"C:\Users\alex\AppData\Local\Google\Chrome\User Data\Default\Cookies",
 			@"C:\ProgramData\EntPoint\config.json",
 			@"C:\Windows\System32\config\SAM",
-			@"C:\Windows\Temp\service.log",
+			@"C:\Windows\Temp\service.log"
+		];
+
+		private static readonly string[] LinuxFilePaths =
+		[
 			"/home/alex/.ssh/id_rsa",
 			"/home/alex/.bash_history",
 			"/home/alex/projects/app/appsettings.json",
@@ -68,22 +89,48 @@ namespace EntPoint.Core
 			"/tmp/archive.zip"
 		];
 
+		private static readonly HashSet<string> DenylistedProcessNames =
+			new(
+				["system_idle_process", "svchost.exe", "kthreadd", "kworker"],
+				StringComparer.OrdinalIgnoreCase);
+
 		private readonly SimulationOptions _options;
 		private readonly Random _random;
+		private readonly string[] _processNames;
+		private readonly string[] _userIds;
+		private readonly string[] _filePaths;
 		private readonly List<SimulatedProcess> _processes = [];
 		private int _nextPid;
 		private bool _initialized;
 
-		public SimulatedEndpoint(SimulationOptions options, Guid? endpointId = null)
+		public SimulatedEndpoint(
+			SimulationOptions options,
+			EndpointOperatingSystem operatingSystem,
+			Guid? endpointId = null)
 		{
 			options.Validate();
 			_options = options;
 			_random = options.Seed.HasValue ? new Random(options.Seed.Value) : new Random();
 			_nextPid = _random.Next(1000, 5000);
+			OperatingSystem = operatingSystem;
 			EndpointId = endpointId ?? Guid.NewGuid();
+
+			(_processNames, _userIds, _filePaths) = operatingSystem switch
+			{
+				EndpointOperatingSystem.Windows =>
+					(WindowsProcessNames, WindowsUserIds, WindowsFilePaths),
+				EndpointOperatingSystem.Linux =>
+					(LinuxProcessNames, LinuxUserIds, LinuxFilePaths),
+				_ => throw new ArgumentOutOfRangeException(
+					nameof(operatingSystem),
+					operatingSystem,
+					"Unsupported operating system.")
+			};
 		}
 
 		public Guid EndpointId { get; }
+
+		public EndpointOperatingSystem OperatingSystem { get; }
 
 		public IReadOnlyList<RawSecurityEvent> Initialize()
 		{
@@ -131,13 +178,14 @@ namespace EntPoint.Core
 		{
 			SimulatedProcess process = SelectCollectableProcess()
 				?? throw new InvalidOperationException("No collectable process is available.");
-			string filePath = FilePaths[_random.Next(FilePaths.Length)];
+			string filePath = _filePaths[_random.Next(_filePaths.Length)];
 			(int? Score, string? Reason) alert =
 				CreateAlert($"Suspicious file read by {process.Name}: {filePath}");
 
 			return new RawSecurityEvent(
 				UtcTimestamp(),
 				EndpointId,
+				OperatingSystem,
 				SecurityEventTypes.FileRead,
 				process.UserId,
 				process.Name,
@@ -156,6 +204,7 @@ namespace EntPoint.Core
 			return new RawSecurityEvent(
 				UtcTimestamp(),
 				EndpointId,
+				OperatingSystem,
 				eventType,
 				process.UserId,
 				process.Name,
@@ -170,7 +219,7 @@ namespace EntPoint.Core
 				_nextPid++,
 				parentPid,
 				SelectProcessName(requireCollectable),
-				UserIds[_random.Next(UserIds.Length)]);
+				_userIds[_random.Next(_userIds.Length)]);
 
 		private SimulatedProcess? SelectCollectableProcess()
 		{
@@ -188,7 +237,7 @@ namespace EntPoint.Core
 			string processName;
 			do
 			{
-				processName = ProcessNames[_random.Next(ProcessNames.Length)];
+				processName = _processNames[_random.Next(_processNames.Length)];
 			}
 			while (requireCollectable && DenylistedProcessNames.Contains(processName));
 

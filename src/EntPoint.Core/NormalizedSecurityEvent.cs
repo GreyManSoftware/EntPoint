@@ -3,6 +3,7 @@ namespace EntPoint.Core
 	public sealed record NormalizedSecurityEvent(
 		string Timestamp,
 		Guid EndpointId,
+		EndpointOperatingSystem OperatingSystem,
 		string EventType,
 		string UserId,
 		string ProcessName,

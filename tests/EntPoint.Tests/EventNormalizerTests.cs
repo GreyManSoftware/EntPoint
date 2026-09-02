@@ -38,6 +38,7 @@ namespace EntPoint.Tests
 		[Theory]
 		[InlineData("system_idle_process")]
 		[InlineData("SVCHOST.EXE")]
+		[InlineData("kthreadd")]
 		public void Normalize_FiltersDenylistedProcesses(string processName)
 		{
 			NormalizationResult result = _normalizer.Normalize(CreateEvent(processName: processName));
@@ -64,6 +65,7 @@ namespace EntPoint.Tests
 			string json = JsonSerializer.Serialize(normalized, SecurityEventJson.Options);
 
 			Assert.Contains("\"endpoint_id\"", json);
+			Assert.Contains("\"operating_system\":\"windows\"", json);
 			Assert.Contains("\"event_type\"", json);
 			Assert.Contains("\"is_alert\":false", json);
 			Assert.Contains("\"pid\":1200", json);
@@ -78,6 +80,7 @@ namespace EntPoint.Tests
 			new(
 				timestamp,
 				EndpointId,
+				EndpointOperatingSystem.Windows,
 				SecurityEventTypes.ProcessStart,
 				"user-1001",
 				processName,
