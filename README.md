@@ -66,9 +66,9 @@ Create the local Compose environment file before the first run:
 Copy-Item .env.example .env
 ```
 
-Replace the placeholder `POSTGRES_PASSWORD` value in `.env`. The local `.env`
-file is ignored by Git; `.env.example` documents the required variable names
-without containing a usable credential.
+Replace the placeholder `POSTGRES_PASSWORD` and `MONGO_PASSWORD` values in
+`.env`. The local `.env` file is ignored by Git; `.env.example` documents the
+required variable names without containing usable credentials.
 
 Build and start continuous collection:
 
@@ -177,8 +177,8 @@ docker compose exec postgres `
 Inspect MongoDB alerts:
 
 ```powershell
-docker compose exec mongo `
-  mongosh --quiet entpoint --eval "db.alerts.find().limit(10)"
+docker compose exec mongo sh -c `
+  'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin entpoint --eval "db.alerts.find().limit(10)"'
 ```
 
 ### Ingestion options
@@ -198,7 +198,8 @@ their environment variables or corresponding command-line arguments. The
 application contains no service connection fallbacks.
 
 Docker Compose reads `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`,
-`MONGO_CONNECTION_STRING`, and `MONGO_DATABASE` from the ignored `.env` file.
+`MONGO_USERNAME`, `MONGO_PASSWORD`, and `MONGO_DATABASE` from the ignored
+`.env` file.
 
 ### Storage design
 
