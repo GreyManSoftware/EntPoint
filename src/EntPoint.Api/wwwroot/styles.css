@@ -45,12 +45,14 @@ button {
 
 .page-layout {
 	display: grid;
-	grid-template-columns: minmax(0, 2fr) minmax(24rem, 1fr);
+	grid-template-columns: minmax(24rem, 1fr) minmax(0, 2fr);
 	gap: 1.5rem;
 	align-items: start;
 }
 
 .demo-content {
+	grid-column: 2;
+	grid-row: 1;
 	min-width: 0;
 }
 
@@ -72,6 +74,8 @@ pre {
 }
 
 .api-reference {
+	grid-column: 1;
+	grid-row: 1;
 	position: sticky;
 	top: 1rem;
 	min-width: 0;
@@ -109,7 +113,10 @@ code {
 		grid-template-columns: 1fr;
 	}
 
+	.demo-content,
 	.api-reference {
+		grid-column: 1;
+		grid-row: auto;
 		position: static;
 	}
 }
