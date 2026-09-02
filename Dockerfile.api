@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY src/EntPoint.Core/EntPoint.Core.csproj src/EntPoint.Core/
+COPY src/EntPoint.Persistence/EntPoint.Persistence.csproj src/EntPoint.Persistence/
+COPY src/EntPoint.Api/EntPoint.Api.csproj src/EntPoint.Api/
+RUN dotnet restore src/EntPoint.Api/EntPoint.Api.csproj
+
+COPY src/ src/
+RUN dotnet publish src/EntPoint.Api/EntPoint.Api.csproj \
+    --configuration Release \
+    --no-restore \
+    --output /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
+WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/publish .
+USER $APP_UID
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "EntPoint.Api.dll"]

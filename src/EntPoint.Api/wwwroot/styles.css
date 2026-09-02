@@ -1,0 +1,54 @@
+:root {
+	color-scheme: light dark;
+	font-family: system-ui, sans-serif;
+}
+
+body {
+	margin: 0;
+	background: #111827;
+	color: #e5e7eb;
+}
+
+main {
+	width: min(960px, calc(100% - 2rem));
+	margin: 2rem auto;
+}
+
+.controls {
+	display: grid;
+	gap: 0.75rem;
+	padding: 1rem;
+	border: 1px solid #374151;
+	border-radius: 0.5rem;
+	background: #1f2937;
+}
+
+select,
+input,
+button {
+	padding: 0.65rem;
+	font: inherit;
+}
+
+.buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+}
+
+button {
+	cursor: pointer;
+}
+
+#status {
+	font-weight: 600;
+}
+
+pre {
+	min-height: 20rem;
+	overflow: auto;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	background: #030712;
+	color: #d1fae5;
+}

@@ -3,7 +3,7 @@ using MongoDB.Driver;
 
 namespace EntPoint.Persistence
 {
-	public sealed class MongoAlertStore
+	public sealed class MongoAlertStore : IAlertQueryStore
 	{
 		private readonly IMongoCollection<AlertDocument> _collection;
 
@@ -91,5 +91,36 @@ namespace EntPoint.Persistence
 			_collection.CountDocumentsAsync(
 				Builders<AlertDocument>.Filter.Empty,
 				cancellationToken: cancellationToken);
+
+		public async Task<IReadOnlyList<AlertDocument>> GetAlertsAsync(
+			Guid? endpointId,
+			int? minimumScore,
+			CancellationToken cancellationToken)
+		{
+			FilterDefinitionBuilder<AlertDocument> filters =
+				Builders<AlertDocument>.Filter;
+			FilterDefinition<AlertDocument> filter = filters.Empty;
+
+			if (endpointId.HasValue)
+			{
+				filter &= filters.Eq(document => document.EndpointId, endpointId.Value);
+			}
+
+			if (minimumScore.HasValue)
+			{
+				filter &= filters.Gte(document => document.AlertScore, minimumScore.Value);
+			}
+
+			IFindFluent<AlertDocument, AlertDocument> query = _collection
+				.Find(filter)
+				.SortByDescending(document => document.Timestamp);
+
+			if (!endpointId.HasValue && !minimumScore.HasValue)
+			{
+				query = query.Limit(10);
+			}
+
+			return await query.ToListAsync(cancellationToken);
+		}
 	}
 }

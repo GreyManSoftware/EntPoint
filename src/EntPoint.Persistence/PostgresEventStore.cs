@@ -5,7 +5,7 @@ using NpgsqlTypes;
 
 namespace EntPoint.Persistence
 {
-	public sealed class PostgresEventStore
+	public sealed class PostgresEventStore : IEventQueryStore
 	{
 		private const string SchemaSql =
 			"""
@@ -175,6 +175,134 @@ namespace EntPoint.Persistence
 				connection);
 			object? result = await command.ExecuteScalarAsync(cancellationToken);
 			return Convert.ToInt64(result, CultureInfo.InvariantCulture);
+		}
+
+		public async Task<IReadOnlyList<EndpointDescriptor>> GetEndpointsAsync(
+			CancellationToken cancellationToken)
+		{
+			const string sql =
+				"""
+				SELECT endpoint_id, operating_system
+				FROM events
+				GROUP BY endpoint_id, operating_system
+				ORDER BY endpoint_id;
+				""";
+
+			await using NpgsqlConnection connection = new NpgsqlConnection(_connectionString);
+			await connection.OpenAsync(cancellationToken);
+			await using NpgsqlCommand command = new NpgsqlCommand(sql, connection);
+			await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+			List<EndpointDescriptor> endpoints = [];
+
+			while (await reader.ReadAsync(cancellationToken))
+			{
+				Guid endpointId = reader.GetGuid(0);
+				string operatingSystemValue = reader.GetString(1);
+				if (!Enum.TryParse(
+						operatingSystemValue,
+						ignoreCase: true,
+						out EndpointOperatingSystem operatingSystem))
+				{
+					throw new InvalidDataException(
+						$"Unsupported stored operating system '{operatingSystemValue}'.");
+				}
+
+				endpoints.Add(new EndpointDescriptor(endpointId, operatingSystem));
+			}
+
+			return endpoints;
+		}
+
+		public async Task<EndpointSummary?> GetSummaryAsync(
+			Guid endpointId,
+			CancellationToken cancellationToken)
+		{
+			await using NpgsqlConnection connection = new NpgsqlConnection(_connectionString);
+			await connection.OpenAsync(cancellationToken);
+
+			long totalEvents = await GetTotalEventsAsync(
+				connection,
+				endpointId,
+				cancellationToken);
+			if (totalEvents == 0)
+			{
+				return null;
+			}
+
+			string mostFrequentProcess = await GetMostFrequentProcessAsync(
+				connection,
+				endpointId,
+				cancellationToken);
+			IReadOnlyDictionary<string, long> eventTypeCounts = await GetEventTypeCountsAsync(
+				connection,
+				endpointId,
+				cancellationToken);
+
+			return new EndpointSummary(
+				endpointId,
+				totalEvents,
+				mostFrequentProcess,
+				eventTypeCounts);
+		}
+
+		private static async Task<long> GetTotalEventsAsync(
+			NpgsqlConnection connection,
+			Guid endpointId,
+			CancellationToken cancellationToken)
+		{
+			const string sql = "SELECT COUNT(*) FROM events WHERE endpoint_id = @endpoint_id;";
+			await using NpgsqlCommand command = new NpgsqlCommand(sql, connection);
+			command.Parameters.AddWithValue("endpoint_id", NpgsqlDbType.Uuid, endpointId);
+			object? result = await command.ExecuteScalarAsync(cancellationToken);
+			return Convert.ToInt64(result, CultureInfo.InvariantCulture);
+		}
+
+		private static async Task<string> GetMostFrequentProcessAsync(
+			NpgsqlConnection connection,
+			Guid endpointId,
+			CancellationToken cancellationToken)
+		{
+			const string sql =
+				"""
+				SELECT process_name
+				FROM events
+				WHERE endpoint_id = @endpoint_id
+				GROUP BY process_name
+				ORDER BY COUNT(*) DESC, process_name
+				LIMIT 1;
+				""";
+			await using NpgsqlCommand command = new NpgsqlCommand(sql, connection);
+			command.Parameters.AddWithValue("endpoint_id", NpgsqlDbType.Uuid, endpointId);
+			object? result = await command.ExecuteScalarAsync(cancellationToken);
+			return Convert.ToString(result, CultureInfo.InvariantCulture)
+				?? throw new InvalidDataException("Endpoint has no process data.");
+		}
+
+		private static async Task<IReadOnlyDictionary<string, long>> GetEventTypeCountsAsync(
+			NpgsqlConnection connection,
+			Guid endpointId,
+			CancellationToken cancellationToken)
+		{
+			const string sql =
+				"""
+				SELECT event_type, COUNT(*)
+				FROM events
+				WHERE endpoint_id = @endpoint_id
+				GROUP BY event_type
+				ORDER BY event_type;
+				""";
+			await using NpgsqlCommand command = new NpgsqlCommand(sql, connection);
+			command.Parameters.AddWithValue("endpoint_id", NpgsqlDbType.Uuid, endpointId);
+			await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
+			Dictionary<string, long> counts = new Dictionary<string, long>(
+				StringComparer.Ordinal);
+
+			while (await reader.ReadAsync(cancellationToken))
+			{
+				counts.Add(reader.GetString(0), reader.GetInt64(1));
+			}
+
+			return counts;
 		}
 	}
 }

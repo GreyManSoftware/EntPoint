@@ -213,6 +213,73 @@ The two stores do not share a distributed transaction. If ingestion is
 interrupted after one store has committed, rerun it with `--reset` to restore a
 known state.
 
+## Part 3: API and demo page
+
+The ASP.NET Core API queries PostgreSQL for endpoint summaries and MongoDB for
+alerts. It also serves a lightweight demonstration page from the same container.
+
+Start the API and its database dependencies:
+
+```powershell
+docker compose up -d --build api
+```
+
+Open the demo page:
+
+```text
+http://localhost:8080
+```
+
+The page loads known endpoints and provides buttons for endpoint summaries,
+recent alerts, and filtered alerts. Responses and HTTP status codes are
+displayed as formatted JSON.
+
+### API endpoints
+
+List known endpoints:
+
+```powershell
+Invoke-RestMethod http://localhost:8080/api/v1/endpoints
+```
+
+Get an endpoint summary:
+
+```powershell
+Invoke-RestMethod `
+  http://localhost:8080/api/v1/summary/<endpoint-uuid>
+```
+
+Get the ten most recent alerts:
+
+```powershell
+Invoke-RestMethod http://localhost:8080/api/v1/alerts
+```
+
+Filter alerts:
+
+```powershell
+Invoke-RestMethod `
+  "http://localhost:8080/api/v1/alerts?endpoint_id=<endpoint-uuid>&min_score=70"
+```
+
+`endpoint_id` and `min_score` are optional and can be used independently or
+together. Filtered results are returned newest first. Without filters, the API
+returns only the ten most recent alerts.
+
+### API errors
+
+- Invalid endpoint UUID: `400 Bad Request`
+- `min_score` outside 1-100: `400 Bad Request`
+- Valid endpoint with no relational events: `404 Not Found`
+- Alert query with no matches: `200 OK` with an empty array
+- Unexpected server or database error: `500 Internal Server Error`
+
+Stop the API without deleting database data:
+
+```powershell
+docker compose stop api
+```
+
 ## Design notes
 
 NDJSON supports continuous append-only collection and can be ingested one event
@@ -221,5 +288,5 @@ coherent and ensures file reads belong to known processes. Runs with two or more
 machines alternate Windows and Linux assignments so both platforms are
 represented; a single machine is assigned one platform when it is created.
 
-Part 3 will add an ASP.NET Core API over the PostgreSQL and MongoDB stores.
-Part 4 will add API-key authentication and role-based authorization.
+Part 4 will add API-key authentication and role-based authorization to the
+existing controllers and demo request flow.

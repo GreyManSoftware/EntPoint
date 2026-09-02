@@ -19,6 +19,7 @@
     <ProjectReference Include="..\..\src\EntPoint.Core\EntPoint.Core.csproj" />
     <ProjectReference Include="..\..\src\EntPoint.Ingestion\EntPoint.Ingestion.csproj" />
     <ProjectReference Include="..\..\src\EntPoint.Persistence\EntPoint.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\EntPoint.Api\EntPoint.Api.csproj" />
   </ItemGroup>
 
 </Project>

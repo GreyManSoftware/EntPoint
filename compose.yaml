@@ -66,6 +66,23 @@ services:
     volumes:
       - ./data:/app/data:ro
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ENTPOINT_POSTGRES: "Host=postgres;Port=5432;Database=${POSTGRES_DB:?Set POSTGRES_DB in .env};Username=${POSTGRES_USER:?Set POSTGRES_USER in .env};Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      ENTPOINT_MONGO: "${MONGO_CONNECTION_STRING:?Set MONGO_CONNECTION_STRING in .env}"
+      ENTPOINT_MONGO_DATABASE: "${MONGO_DATABASE:?Set MONGO_DATABASE in .env}"
+    ports:
+      - "8080:8080"
+
   tests:
     image: mcr.microsoft.com/dotnet/sdk:10.0
     profiles:
