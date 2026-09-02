@@ -231,35 +231,48 @@ Open the demo page:
 http://localhost:8080
 ```
 
-The page loads known endpoints and provides buttons for endpoint summaries,
-recent alerts, and filtered alerts. Responses and HTTP status codes are
-displayed as formatted JSON.
+The page provides analyst, admin, and cleared-key controls alongside buttons for
+endpoint summaries, recent alerts, and filtered alerts. Responses and HTTP
+status codes are displayed as formatted JSON.
 
 ### API endpoints
+
+Create reusable PowerShell headers with either demo key:
+
+```powershell
+$analystHeaders = @{ "X-API-Key" = "entpoint-demo-analyst-key" }
+$adminHeaders = @{ "X-API-Key" = "entpoint-demo-admin-key" }
+```
 
 List known endpoints:
 
 ```powershell
-Invoke-RestMethod http://localhost:8080/api/v1/endpoints
+Invoke-RestMethod `
+  -Headers $analystHeaders `
+  http://localhost:8080/api/v1/endpoints
 ```
 
 Get an endpoint summary:
 
 ```powershell
 Invoke-RestMethod `
+  -Headers $analystHeaders `
   http://localhost:8080/api/v1/summary/<endpoint-uuid>
 ```
 
 Get the ten most recent alerts:
 
 ```powershell
-Invoke-RestMethod http://localhost:8080/api/v1/alerts
+Invoke-RestMethod `
+  -Headers $adminHeaders `
+  http://localhost:8080/api/v1/alerts
 ```
 
 Filter alerts:
 
 ```powershell
 Invoke-RestMethod `
+  -Headers $adminHeaders `
   "http://localhost:8080/api/v1/alerts?endpoint_id=<endpoint-uuid>&min_score=70"
 ```
 
@@ -269,6 +282,8 @@ returns only the ten most recent alerts.
 
 ### API errors
 
+- Missing or invalid API key: `401 Unauthorized`
+- Authenticated role without permission: `403 Forbidden`
 - Invalid endpoint UUID: `400 Bad Request`
 - `min_score` outside 1-100: `400 Bad Request`
 - Valid endpoint with no relational events: `404 Not Found`
@@ -281,6 +296,67 @@ Stop the API without deleting database data:
 docker compose stop api
 ```
 
+## Part 4: API security
+
+Every controller endpoint requires an `X-API-Key` header. The exercise uses two
+fixed public demonstration keys:
+
+```text
+Analyst: entpoint-demo-analyst-key
+Admin:   entpoint-demo-admin-key
+```
+
+These keys are intentionally hardcoded to satisfy the assessment and require no
+generation step. They are not production credentials.
+
+| Endpoint | Analyst | Admin |
+|---|---:|---:|
+| `GET /api/v1/endpoints` | Allowed | Allowed |
+| `GET /api/v1/summary/{endpoint_id}` | Allowed | Allowed |
+| `GET /api/v1/alerts` | Forbidden | Allowed |
+
+Request without a key:
+
+```powershell
+Invoke-WebRequest `
+  http://localhost:8080/api/v1/endpoints `
+  -SkipHttpErrorCheck
+```
+
+Request with an invalid key:
+
+```powershell
+Invoke-WebRequest `
+  -Headers @{ "X-API-Key" = "invalid" } `
+  http://localhost:8080/api/v1/endpoints `
+  -SkipHttpErrorCheck
+```
+
+Demonstrate analyst access to summaries:
+
+```powershell
+Invoke-WebRequest `
+  -Headers $analystHeaders `
+  http://localhost:8080/api/v1/summary/<endpoint-uuid>
+```
+
+Demonstrate the analyst alert restriction:
+
+```powershell
+Invoke-WebRequest `
+  -Headers $analystHeaders `
+  http://localhost:8080/api/v1/alerts `
+  -SkipHttpErrorCheck
+```
+
+Demonstrate admin alert access:
+
+```powershell
+Invoke-WebRequest `
+  -Headers $adminHeaders `
+  http://localhost:8080/api/v1/alerts
+```
+
 ## Design notes
 
 NDJSON supports continuous append-only collection and can be ingested one event
@@ -289,5 +365,6 @@ coherent and ensures file reads belong to known processes. Runs with two or more
 machines alternate Windows and Linux assignments so both platforms are
 represented; a single machine is assigned one platform when it is created.
 
-Part 4 will add API-key authentication and role-based authorization to the
-existing controllers and demo request flow.
+API-key authentication uses fixed-time key comparison and a global authenticated
+fallback policy. Explicit authorization policies allow analysts and admins to
+query endpoint summaries while restricting alerts to admins.

@@ -1,6 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EntPoint.Api.Security;
 using EntPoint.Persistence;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EntPoint.Api
 {
@@ -29,6 +32,23 @@ namespace EntPoint.Api
 						new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
 				});
 			builder.Services.AddProblemDetails();
+			builder.Services
+				.AddAuthentication(ApiKeyDefaults.Scheme)
+				.AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+					ApiKeyDefaults.Scheme,
+					options => { });
+			AuthorizationBuilder authorization = builder.Services.AddAuthorizationBuilder();
+			authorization.SetFallbackPolicy(
+				new AuthorizationPolicyBuilder(
+					ApiKeyDefaults.Scheme)
+					.RequireAuthenticatedUser()
+					.Build());
+			authorization.AddPolicy(
+				ApiAuthorizationPolicies.AnalystOrAdmin,
+				policy => policy.RequireRole(ApiRoles.Analyst, ApiRoles.Admin));
+			authorization.AddPolicy(
+				ApiAuthorizationPolicies.AdminOnly,
+				policy => policy.RequireRole(ApiRoles.Admin));
 			builder.Services.AddSingleton<IEventQueryStore>(
 				new PostgresEventStore(postgresConnectionString));
 			builder.Services.AddSingleton<IAlertQueryStore>(
@@ -38,6 +58,8 @@ namespace EntPoint.Api
 			app.UseExceptionHandler();
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
+			app.UseAuthentication();
+			app.UseAuthorization();
 			app.MapControllers();
 			app.Run();
 		}

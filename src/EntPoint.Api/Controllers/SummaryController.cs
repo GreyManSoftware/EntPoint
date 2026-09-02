@@ -1,10 +1,13 @@
 using EntPoint.Api.Models;
+using EntPoint.Api.Security;
 using EntPoint.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EntPoint.Api.Controllers
 {
 	[ApiController]
+	[Authorize(Policy = ApiAuthorizationPolicies.AnalystOrAdmin)]
 	[Route("api/v1/summary")]
 	public sealed class SummaryController : ControllerBase
 	{

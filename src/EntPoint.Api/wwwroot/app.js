@@ -1,3 +1,4 @@
+const apiKeyInput = document.querySelector("#api-key");
 const endpointSelect = document.querySelector("#endpoint");
 const minimumScoreInput = document.querySelector("#minimum-score");
 const statusElement = document.querySelector("#status");
@@ -5,23 +6,29 @@ const outputElement = document.querySelector("#output");
 const commandExamplesElement = document.querySelector("#command-examples");
 
 function renderCommandExamples() {
+	const apiKey = apiKeyInput.value || "<api-key>";
 	const endpointId = endpointSelect.value || "<endpoint-uuid>";
 	const minimumScore = minimumScoreInput.value || "70";
 	commandExamplesElement.textContent =
-`curl.exe http://localhost:8080/api/v1/endpoints
+`curl.exe -H "X-API-Key: ${apiKey}" http://localhost:8080/api/v1/endpoints
 
-curl.exe http://localhost:8080/api/v1/summary/${endpointId}
+curl.exe -H "X-API-Key: ${apiKey}" http://localhost:8080/api/v1/summary/${endpointId}
 
-curl.exe http://localhost:8080/api/v1/alerts
+curl.exe -H "X-API-Key: ${apiKey}" http://localhost:8080/api/v1/alerts
 
-curl.exe "http://localhost:8080/api/v1/alerts?endpoint_id=${endpointId}&min_score=${minimumScore}"`;
+curl.exe -H "X-API-Key: ${apiKey}" "http://localhost:8080/api/v1/alerts?endpoint_id=${endpointId}&min_score=${minimumScore}"`;
 }
 
 async function request(path) {
 	statusElement.textContent = `Requesting ${path}`;
 	outputElement.textContent = "";
 
-	const response = await fetch(path);
+	const headers = {};
+	if (apiKeyInput.value) {
+		headers["X-API-Key"] = apiKeyInput.value;
+	}
+
+	const response = await fetch(path, { headers });
 	const text = await response.text();
 	let body = text;
 
@@ -79,6 +86,26 @@ document.querySelector("#filtered-alerts").addEventListener("click", () => {
 	request(`/api/v1/alerts?${parameters}`);
 });
 
+document.querySelector("#analyst-key").addEventListener("click", () => {
+	apiKeyInput.value = "entpoint-demo-analyst-key";
+	renderCommandExamples();
+	loadEndpoints();
+});
+
+document.querySelector("#admin-key").addEventListener("click", () => {
+	apiKeyInput.value = "entpoint-demo-admin-key";
+	renderCommandExamples();
+	loadEndpoints();
+});
+
+document.querySelector("#clear-key").addEventListener("click", () => {
+	apiKeyInput.value = "";
+	endpointSelect.replaceChildren();
+	renderCommandExamples();
+	loadEndpoints();
+});
+
+apiKeyInput.addEventListener("input", renderCommandExamples);
 endpointSelect.addEventListener("change", renderCommandExamples);
 minimumScoreInput.addEventListener("input", renderCommandExamples);
 
