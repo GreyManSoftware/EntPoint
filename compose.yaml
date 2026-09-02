@@ -35,6 +35,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: "${MONGO_USERNAME:?Set MONGO_USERNAME in .env}"
       MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PASSWORD:?Set MONGO_PASSWORD in .env}"
+      MONGO_DATABASE: "${MONGO_DATABASE:?Set MONGO_DATABASE in .env}"
     ports:
       - "127.0.0.1:27017:27017"
     volumes:

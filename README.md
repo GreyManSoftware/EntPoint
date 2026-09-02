@@ -23,6 +23,53 @@ PostgreSQL and MongoDB are persistent services backed by named Docker volumes.
 Compose provides the ingestion container with connection settings and resolves
 the service names `postgres` and `mongo` through Docker DNS.
 
+## Prerequisites
+
+- Docker Desktop with Linux containers and Docker Compose
+- Git
+- .NET 10 SDK only when running or debugging the C# projects outside Docker
+
+## Quick start
+
+From the repository root, create the ignored local environment file:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Replace both password placeholders in `.env`, then generate a finite dataset:
+
+```powershell
+docker compose run --build --rm collector `
+  --output /app/data/events.ndjson `
+  --machines 3 `
+  --max-events 100 `
+  --interval-ms 10 `
+  --seed 42
+```
+
+Create the databases and ingest the dataset:
+
+```powershell
+docker compose run --build --rm ingestion --reset
+```
+
+Start the secured API and open the review page:
+
+```powershell
+docker compose up -d --build api
+Start-Process http://localhost:8080
+```
+
+Run the complete test suite:
+
+```powershell
+docker compose run --rm tests
+```
+
+The demo page provides the public exercise analyst and admin keys required to
+test authorized, unauthorized, and forbidden requests.
+
 ## Collector
 
 `EntPoint.Collector` simulates security telemetry from one or more virtual
@@ -81,7 +128,7 @@ Events are written to `data/events.ndjson`. Press `Ctrl+C` to stop collection.
 Run a finite, repeatable sample:
 
 ```powershell
-docker compose run --rm collector `
+docker compose run --build --rm collector `
   --output /app/data/events.ndjson `
   --machines 2 `
   --max-events 25 `
@@ -136,13 +183,13 @@ docker compose up -d postgres mongo
 Ingest `data/events.ndjson`:
 
 ```powershell
-docker compose run --rm ingestion
+docker compose run --build --rm ingestion
 ```
 
 Use `--reset` to clear both stores before importing:
 
 ```powershell
-docker compose run --rm ingestion --reset
+docker compose run --build --rm ingestion --reset
 ```
 
 The ingestion container exits after processing the file. PostgreSQL and MongoDB
@@ -170,15 +217,15 @@ dotnet run --project .\src\EntPoint.Ingestion\EntPoint.Ingestion.csproj -- `
 Count PostgreSQL events:
 
 ```powershell
-docker compose exec postgres `
-  psql -U entpoint -d entpoint -c "SELECT COUNT(*) FROM events;"
+docker compose exec postgres sh -c `
+  'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT COUNT(*) FROM events;"'
 ```
 
 Inspect MongoDB alerts:
 
 ```powershell
 docker compose exec mongo sh -c `
-  'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin entpoint --eval "db.alerts.find().limit(10)"'
+  'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin "$MONGO_DATABASE" --eval "db.alerts.find().limit(10)"'
 ```
 
 ### Ingestion options
@@ -247,9 +294,12 @@ $adminHeaders = @{ "X-API-Key" = "entpoint-demo-admin-key" }
 List known endpoints:
 
 ```powershell
-Invoke-RestMethod `
+$endpoints = Invoke-RestMethod `
   -Headers $analystHeaders `
-  http://localhost:8080/api/v1/endpoints
+  -Uri "http://localhost:8080/api/v1/endpoints"
+
+$endpointId = $endpoints[0].endpoint_id
+$endpoints
 ```
 
 Get an endpoint summary:
@@ -257,7 +307,7 @@ Get an endpoint summary:
 ```powershell
 Invoke-RestMethod `
   -Headers $analystHeaders `
-  http://localhost:8080/api/v1/summary/<endpoint-uuid>
+  -Uri "http://localhost:8080/api/v1/summary/$endpointId"
 ```
 
 Get the ten most recent alerts:
@@ -265,7 +315,7 @@ Get the ten most recent alerts:
 ```powershell
 Invoke-RestMethod `
   -Headers $adminHeaders `
-  http://localhost:8080/api/v1/alerts
+  -Uri "http://localhost:8080/api/v1/alerts"
 ```
 
 Filter alerts:
@@ -273,7 +323,7 @@ Filter alerts:
 ```powershell
 Invoke-RestMethod `
   -Headers $adminHeaders `
-  "http://localhost:8080/api/v1/alerts?endpoint_id=<endpoint-uuid>&min_score=70"
+  -Uri "http://localhost:8080/api/v1/alerts?endpoint_id=$endpointId&min_score=70"
 ```
 
 `endpoint_id` and `min_score` are optional and can be used independently or
@@ -319,7 +369,7 @@ Request without a key:
 
 ```powershell
 Invoke-WebRequest `
-  http://localhost:8080/api/v1/endpoints `
+  -Uri "http://localhost:8080/api/v1/endpoints" `
   -SkipHttpErrorCheck
 ```
 
@@ -328,7 +378,7 @@ Request with an invalid key:
 ```powershell
 Invoke-WebRequest `
   -Headers @{ "X-API-Key" = "invalid" } `
-  http://localhost:8080/api/v1/endpoints `
+  -Uri "http://localhost:8080/api/v1/endpoints" `
   -SkipHttpErrorCheck
 ```
 
@@ -337,7 +387,7 @@ Demonstrate analyst access to summaries:
 ```powershell
 Invoke-WebRequest `
   -Headers $analystHeaders `
-  http://localhost:8080/api/v1/summary/<endpoint-uuid>
+  -Uri "http://localhost:8080/api/v1/summary/$endpointId"
 ```
 
 Demonstrate the analyst alert restriction:
@@ -345,7 +395,7 @@ Demonstrate the analyst alert restriction:
 ```powershell
 Invoke-WebRequest `
   -Headers $analystHeaders `
-  http://localhost:8080/api/v1/alerts `
+  -Uri "http://localhost:8080/api/v1/alerts" `
   -SkipHttpErrorCheck
 ```
 
@@ -354,7 +404,7 @@ Demonstrate admin alert access:
 ```powershell
 Invoke-WebRequest `
   -Headers $adminHeaders `
-  http://localhost:8080/api/v1/alerts
+  -Uri "http://localhost:8080/api/v1/alerts"
 ```
 
 ## Design notes
