@@ -14,7 +14,7 @@ namespace EntPoint.Collector
 	{
 		public static CollectorOptions Parse(string[] args)
 		{
-			string outputPath = Path.Combine("data", "events.ndjson");
+			string outputPath = DefaultOutputPath;
 			int intervalMilliseconds = 1000;
 			int? maxEvents = null;
 			int machineCount = 1;
@@ -110,11 +110,11 @@ namespace EntPoint.Collector
 		}
 
 		public static string HelpText =>
-			"""
+			$"""
         EntPoint endpoint event simulator
 
         Options:
-          --output <path>              NDJSON output path (default: data/events.ndjson)
+          --output <path>              NDJSON output path (default: {DefaultOutputPath})
           --interval-ms <number>       Delay between continuous events (default: 1000)
           --max-events <number>        Stop after writing this many events
           --machines <number>          Number of virtual machines (default: 1)
@@ -123,6 +123,14 @@ namespace EntPoint.Collector
           --seed <number>              Fixed random seed for repeatable output
           --help                       Show this help
         """;
+
+		private static string DefaultOutputPath =>
+			string.Equals(
+				Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"),
+				"true",
+				StringComparison.OrdinalIgnoreCase)
+				? Path.Combine(Path.GetTempPath(), "entpoint", "events.ndjson")
+				: Path.Combine("data", "events.ndjson");
 
 		private static string ReadValue(string[] args, ref int index, string argument)
 		{
