@@ -66,36 +66,41 @@ namespace EntPoint.Collector
 			if (intervalMilliseconds < 0)
 			{
 				throw new ArgumentOutOfRangeException(
-					nameof(intervalMilliseconds),
-					"Interval cannot be negative.");
+					nameof(args),
+					intervalMilliseconds,
+					"Argument '--interval-ms' cannot be negative.");
 			}
 
 			if (maxEvents is <= 0)
 			{
 				throw new ArgumentOutOfRangeException(
-					nameof(maxEvents),
-					"Maximum events must be positive.");
+					nameof(args),
+					maxEvents,
+					"Argument '--max-events' must be positive.");
 			}
 
 			if (initialProcesses < 1)
 			{
 				throw new ArgumentOutOfRangeException(
-					nameof(initialProcesses),
-					"At least one initial process is required.");
+					nameof(args),
+					initialProcesses,
+					"Argument '--initial-processes' must be positive.");
 			}
 
 			if (machineCount < 1)
 			{
 				throw new ArgumentOutOfRangeException(
-					nameof(machineCount),
-					"At least one machine is required.");
+					nameof(args),
+					machineCount,
+					"Argument '--machines' must be positive.");
 			}
 
 			if (alertPercentage is < 0 or > 100)
 			{
 				throw new ArgumentOutOfRangeException(
-					nameof(alertPercentage),
-					"Alert percentage must be between 0 and 100.");
+					nameof(args),
+					alertPercentage,
+					"Argument '--alert-percentage' must be between 0 and 100.");
 			}
 
 			return new CollectorOptions(
